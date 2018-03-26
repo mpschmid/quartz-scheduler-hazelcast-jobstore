@@ -22,8 +22,6 @@ import java.util.stream.Collectors;
 
 import static com.bikeemotion.quartz.jobstore.hazelcast.TriggerState.*;
 import static com.bikeemotion.quartz.jobstore.hazelcast.TriggerWrapper.newTriggerWrapper;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
 
 /**
  * @author Flavio Ferreira
@@ -508,7 +506,7 @@ public class HazelcastJobStore implements JobStore, Serializable {
         Collection<TriggerKey> triggerKeys = triggersByGroup
             .get(groupNameCompareValue);
         if (triggerKeys != null) {
-          outList = newHashSet();
+          outList = new HashSet<>();
           for (TriggerKey triggerKey : triggerKeys) {
             if (triggerKey != null) {
               outList.add(triggerKey);
@@ -520,7 +518,7 @@ public class HazelcastJobStore implements JobStore, Serializable {
         for (String groupName : triggersByGroup.keySet()) {
           if (operator.evaluate(groupName, groupNameCompareValue)) {
             if (outList == null) {
-              outList = newHashSet();
+              outList = new HashSet<>();
             }
             for (TriggerKey triggerKey : triggersByGroup.get(groupName)) {
               if (triggerKey != null) {
@@ -539,7 +537,7 @@ public class HazelcastJobStore implements JobStore, Serializable {
   public List<String> getJobGroupNames()
       throws JobPersistenceException {
 
-    return newArrayList(jobsByGroup.keySet());
+    return new ArrayList<>(jobsByGroup.keySet());
   }
 
   @Override
@@ -606,6 +604,40 @@ public class HazelcastJobStore implements JobStore, Serializable {
       }
     }
     return result;
+  }
+
+  @Override
+  public void resetTriggerFromErrorState(TriggerKey triggerKey)
+      throws JobPersistenceException {
+
+    TriggerWrapper tw = triggersByKey.get(triggerKey);
+    // was the trigger deleted since being acquired?
+    if (tw == null) {
+      return;
+    }
+    // was the trigger completed, paused, blocked, etc. since being acquired?
+    if (tw.getState() != ERROR) {
+      return;
+    }
+
+    triggersByKey.lock(triggerKey, 5, TimeUnit.SECONDS);
+    try {
+      TriggerWrapper newTw;
+      if (pausedTriggerGroups.containsKey(triggerKey.getGroup())) {
+        newTw = newTriggerWrapper(tw, PAUSED);
+
+      } else {
+        newTw = newTriggerWrapper(tw, WAITING);
+      }
+
+      triggersByKey.set(newTw.key, newTw);
+    } finally {
+      try {
+        triggersByKey.unlock(triggerKey);
+      } catch (IllegalMonitorStateException ex) {
+        LOG.warn("Error unlocking since it is already released.", ex);
+      }
+    }
   }
 
   @Override
@@ -1112,13 +1144,20 @@ public class HazelcastJobStore implements JobStore, Serializable {
     // not need
   }
 
+  @Override
+  public long getAcquireRetryDelay(int failureCount) {
+
+    return getEstimatedTimeToReleaseAndAcquireTrigger() * 10;
+  }
+
   private ArrayList<TriggerWrapper> getTriggerWrappersForJob(JobKey jobKey) {
 
     ArrayList<TriggerWrapper> trigList = new ArrayList<>();
 
-    triggersByKey.values().stream().filter((trigger) -> (trigger.jobKey.equals(jobKey))).forEach((trigger) -> {
-      trigList.add(trigger);
-    });
+    triggersByKey.values()
+        .stream()
+        .filter((trigger) -> (trigger.jobKey.equals(jobKey)))
+        .forEach(trigList::add);
 
     return trigList;
   }

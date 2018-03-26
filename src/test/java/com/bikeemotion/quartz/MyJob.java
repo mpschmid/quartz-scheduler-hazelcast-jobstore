@@ -26,7 +26,7 @@ public final class MyJob implements Job, Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(MyJob.class);
 
-  public static int count = 0;
+  public volatile static int count = 0;
   public static Queue<String> jobKeys = new LinkedList<>();
   public static Queue<String> triggerKeys = new LinkedList<>();
 

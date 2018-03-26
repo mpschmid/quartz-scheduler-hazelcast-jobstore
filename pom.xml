@@ -1,43 +1,25 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-      <groupId>com.bikeemotion</groupId>
-      <artifactId>oss-parent</artifactId>
-      <version>1.0.1</version>
-    </parent>
-
-    <groupId>com.bikeemotion</groupId>
+    <groupId>com.idvp.platform</groupId>
     <artifactId>quartz-hazelcast-jobstore</artifactId>
-    <version>1.0.5-SNAPSHOT</version>
-    <packaging>bundle</packaging>
+    <version>1.0.5</version>
+    <packaging>jar</packaging>
   
     <name>Quartz Hazelcast JobStore</name>
-
-    <issueManagement>
-      <url>https://github.com/FlavioF/quartz-scheduler-hazelcast-jobstore/issues</url>
-      <system>GitHub Issues</system>
-    </issueManagement>
-
-    <scm>
-      <url>https://github.com/FlavioF/quartz-scheduler-hazelcast-jobstore/</url>
-      <connection>scm:git:git://github.com/FlavioF/quartz-scheduler-hazelcast-jobstore.git</connection>
-      <developerConnection>scm:git:git://github.com/FlavioF/quartz-scheduler-hazelcast-jobstore.git</developerConnection>
-    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Compiler -->
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-    
-        <hazelcast.version>3.8.3</hazelcast.version>
-        <quartz.version>2.2.3</quartz.version>
-        <guava.version>17.0</guava.version>
-        <joda.time.version>2.4</joda.time.version>
-    
-        <osgi.import.pkg>*</osgi.import.pkg>
-        <osgi.export.pkg>com.bikeemotion.quartz.jobstore.*</osgi.export.pkg>
+
+        <testng.version>6.8.13</testng.version>
+        <!-- Logging -->
+        <slf4j.version>1.7.7</slf4j.version>
+
+        <hazelcast.version>3.9.3</hazelcast.version>
+        <quartz.version>2.3.0</quartz.version>
     </properties>
 
     <dependencies>
@@ -46,40 +28,52 @@
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
             <version>${quartz.version}</version>
+            <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz-jobs</artifactId>
             <version>${quartz.version}</version>
+            <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-client</artifactId>
             <version>${hazelcast.version}</version>
+            <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
             <version>${hazelcast.version}</version>
+            <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
-    
-        <!-- Logging -->
+
+
+
+        <!-- Utils & Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-        </dependency>
-    
-        <!-- Utils -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
+            <version>${slf4j.version}</version>
+            <optional>true</optional>
         </dependency>
 
-        <!-- Test Dependencies -->
+        <!--Testing-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -93,17 +87,6 @@
           <artifactId>hamcrest-core</artifactId>
           <version>1.3</version>
           <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>${joda.time.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -127,4 +110,15 @@
         </plugins>
     </build>
 
+
+    <distributionManagement>
+        <repository>
+            <id>idvp-releases</id>
+            <url>http://mvn-repository.ru/content/repositories/idvp-releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>idvp-snapshots</id>
+            <url>http://mvn-repository.ru/content/repositories/idvp-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

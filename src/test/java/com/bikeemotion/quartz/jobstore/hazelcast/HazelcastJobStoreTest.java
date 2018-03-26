@@ -2,16 +2,11 @@ package com.bikeemotion.quartz.jobstore.hazelcast;
 
 import com.beust.jcommander.internal.Maps;
 import com.bikeemotion.quartz.AbstractTest;
-import com.google.common.collect.Lists;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.quartz.Calendar;
 import org.quartz.DateBuilder;
@@ -50,8 +45,6 @@ import org.testng.annotations.BeforeMethod;
 
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
-
-import java.util.UUID;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -673,7 +666,7 @@ public class HazelcastJobStoreTest extends AbstractTest {
     JobDetail retrieveJob = retrieveJob(jobName);
     assertNotNull(retrieveJob);
 
-    List<JobKey> jobKeyList = Lists.newArrayList(jobDetail.getKey(), jobDetailImpl2.getKey());
+    List<JobKey> jobKeyList = new ArrayList<>(Arrays.asList(jobDetail.getKey(), jobDetailImpl2.getKey()));
     boolean removeJob = jobStore.removeJobs(jobKeyList);
     assertTrue(removeJob);
 
@@ -778,7 +771,7 @@ public class HazelcastJobStoreTest extends AbstractTest {
     jobStore.storeTrigger(trigger1, false);
     jobStore.storeTrigger(trigger2, false);
 
-    List<TriggerKey> triggerKeys = Lists.newArrayList(trigger1.getKey(), trigger2.getKey());
+    List<TriggerKey> triggerKeys = new ArrayList<>(Arrays.asList(trigger1.getKey(), trigger2.getKey()));
     boolean removeTriggers = jobStore.removeTriggers(triggerKeys);
     assertTrue(removeTriggers);
   }

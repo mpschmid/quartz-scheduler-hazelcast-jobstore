@@ -7,7 +7,6 @@ import com.hazelcast.core.HazelcastInstance;
 
 import java.util.Date;
 
-import org.joda.time.DateTime;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
@@ -160,7 +159,7 @@ public abstract class AbstractTest {
 
   protected OperableTrigger buildTrigger(String triggerName, String groupName, JobDetail jobDetail) {
 
-    return buildTrigger(triggerName, groupName, jobDetail, DateTime.now().getMillis());
+    return buildTrigger(triggerName, groupName, jobDetail, System.currentTimeMillis());
   }
 
   protected OperableTrigger buildAndComputeTrigger(String triggerName, String triggerGroup, JobDetail job, Long startAt) {

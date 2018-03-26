@@ -15,7 +15,6 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.joda.time.DateTime;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
@@ -141,9 +140,9 @@ public class QuartzTest extends AbstractTest {
     JobDetail job2 = buildJob("Job2", DEFAULT_GROUP, MyJob.class);
     JobDetail job3 = buildJob("Job3", DEFAULT_GROUP, MyJob.class);
 
-    scheduler.scheduleJob(job1, buildTrigger("key1", DEFAULT_GROUP, job1, DateTime.now().plusMillis(100).getMillis()));
-    scheduler.scheduleJob(job2, buildTrigger("key2", DEFAULT_GROUP, job2, DateTime.now().plusMillis(500).getMillis()));
-    scheduler.scheduleJob(job3, buildTrigger("key3", DEFAULT_GROUP, job3, DateTime.now().plusMillis(750).getMillis()));
+    scheduler.scheduleJob(job1, buildTrigger("key1", DEFAULT_GROUP, job1, System.currentTimeMillis() + 100));
+    scheduler.scheduleJob(job2, buildTrigger("key2", DEFAULT_GROUP, job2, System.currentTimeMillis() + 500));
+    scheduler.scheduleJob(job3, buildTrigger("key3", DEFAULT_GROUP, job3, System.currentTimeMillis() + 750));
 
     Thread.sleep(800);
     assertEquals(MyJob.count, 3);
@@ -160,9 +159,9 @@ public class QuartzTest extends AbstractTest {
     JobDetail job1 = buildJob("testScheduleDelete", DEFAULT_GROUP, MyJob.class);
 
     scheduler.scheduleJob(job1,
-        buildTrigger("k21", DEFAULT_GROUP, job1, DateTime.now().plusMillis(150000).getMillis()));
+        buildTrigger("k21", DEFAULT_GROUP, job1, System.currentTimeMillis() + 150000));
     assertTrue(scheduler.deleteJob(job1.getKey()));
-    scheduler.scheduleJob(job1, buildTrigger("k21", DEFAULT_GROUP, job1, DateTime.now().plusMillis(150).getMillis()));
+    scheduler.scheduleJob(job1, buildTrigger("k21", DEFAULT_GROUP, job1, System.currentTimeMillis() + 150));
 
     Thread.sleep(750);
     assertEquals(MyJob.count, 1);
@@ -178,9 +177,9 @@ public class QuartzTest extends AbstractTest {
     JobDetail job2 = buildJob("testScheduleAtSameTime2", DEFAULT_GROUP, MyJob.class);
     JobDetail job3 = buildJob("testScheduleAtSameTime3", DEFAULT_GROUP, MyJob.class);
 
-    scheduler.scheduleJob(job1, buildTrigger("k21", DEFAULT_GROUP, job1, DateTime.now().plusMillis(100).getMillis()));
-    scheduler.scheduleJob(job2, buildTrigger("k22", DEFAULT_GROUP, job2, DateTime.now().plusMillis(100).getMillis()));
-    scheduler.scheduleJob(job3, buildTrigger("k23", DEFAULT_GROUP, job3, DateTime.now().plusMillis(100).getMillis()));
+    scheduler.scheduleJob(job1, buildTrigger("k21", DEFAULT_GROUP, job1, System.currentTimeMillis() + 100));
+    scheduler.scheduleJob(job2, buildTrigger("k22", DEFAULT_GROUP, job2, System.currentTimeMillis() + 100));
+    scheduler.scheduleJob(job3, buildTrigger("k23", DEFAULT_GROUP, job3, System.currentTimeMillis() + 100));
 
     Thread.sleep(350);
     assertEquals(MyJob.count, 3);
@@ -196,14 +195,14 @@ public class QuartzTest extends AbstractTest {
 
     JobDetail job1 = buildJob("Job1", DEFAULT_GROUP, MyJob.class);
 
-    scheduler.scheduleJob(job1, buildTrigger("key1", DEFAULT_GROUP, job1, DateTime.now().plusMillis(200).getMillis()));
+    scheduler.scheduleJob(job1, buildTrigger("key1", DEFAULT_GROUP, job1, System.currentTimeMillis() + 300));
     Thread.sleep(5);
-    scheduler.scheduleJob(buildTrigger("key2", DEFAULT_GROUP, job1, DateTime.now().plusMillis(100).getMillis()));
+    scheduler.scheduleJob(buildTrigger("key2", DEFAULT_GROUP, job1, System.currentTimeMillis() + 100));
     Thread.sleep(5);
-    scheduler.scheduleJob(buildTrigger("key3", DEFAULT_GROUP, job1, DateTime.now().plusMillis(300).getMillis()));
+    scheduler.scheduleJob(buildTrigger("key3", DEFAULT_GROUP, job1, System.currentTimeMillis() + 500));
     Thread.sleep(5);
 
-    Thread.sleep(350);
+    Thread.sleep(850);
 
     assertEquals(MyJob.count, 3);
     assertEquals(MyJob.triggerKeys.poll(), "key2");
