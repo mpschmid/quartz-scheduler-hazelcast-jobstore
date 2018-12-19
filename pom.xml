@@ -113,12 +113,12 @@
 
     <distributionManagement>
         <repository>
-            <id>idvp-releases</id>
-            <url>http://mvn-repository.ru/content/repositories/idvp-releases</url>
+            <id>libs-mvn-local</id>
+            <url>https://artifactory.inf.idvp.net:443/artifactory/libs-mvn-local</url>
         </repository>
         <snapshotRepository>
-            <id>idvp-snapshots</id>
-            <url>http://mvn-repository.ru/content/repositories/idvp-snapshots</url>
+            <id>libs-mvn-local</id>
+            <url>https://artifactory.inf.idvp.net:443/artifactory/libs-mvn-local</url>
         </snapshotRepository>
     </distributionManagement>
 </project>
