@@ -5,6 +5,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.MultiMap;
 import com.hazelcast.query.Predicate;
+import com.hazelcast.util.IterableUtil;
 import org.quartz.Calendar;
 import org.quartz.*;
 import org.quartz.Trigger.CompletedExecutionInstruction;
@@ -76,11 +77,11 @@ public class HazelcastJobStore implements JobStore, Serializable {
   private IMap<String, Calendar> calendarsByName;
   private volatile boolean schedulerRunning = false;
   private long misfireThreshold = 5000;
-  private long triggerReleaseThreshold = 60000;
+  private long triggerReleaseThreshold = 60000; // Это лимит нахождения задачи в статусе ACQUIRED. Нужен для обнаружения "зависших" задач?
 
   private String instanceId;
   private String instanceName;
-  private boolean shutdownHazelcastOnShutdown = true;
+  private boolean shutdownHazelcastOnShutdown = false;
 
   @Override
   public void initialize(ClassLoadHelper loadHelper, SchedulerSignaler signaler)
@@ -93,6 +94,7 @@ public class HazelcastJobStore implements JobStore, Serializable {
     if (hazelcastInstance == null) {
       LOG.warn("Starting new local hazelcast server instance since not set before starting scheduler.");
       setHazelcastServer(Hazelcast.newHazelcastInstance());
+      shutdownHazelcastOnShutdown = true;
     }
 
     // initializing hazelcast maps
@@ -856,14 +858,24 @@ public class HazelcastJobStore implements JobStore, Serializable {
     Set<JobKey> acquiredJobKeysForNoConcurrentExec = new HashSet<>();
 
     // ordering triggers to try to ensure firetime order
-    List<TriggerWrapper> orderedTriggers = new ArrayList<>(triggersByKey.values(new TriggersPredicate(limit)));
-    Collections.sort(orderedTriggers, (o1, o2) -> o1.getNextFireTime().compareTo(o2.getNextFireTime()));
+    Collection<TriggerWrapper> triggers = triggersByKey.values(new TriggersPredicate(limit));
 
-    for (int i = 0; i < orderedTriggers.size(); i++) {
-      TriggerWrapper tw = orderedTriggers.get(i);
+    Set<TriggerWrapper> orderedTriggers = new TreeSet<>(Comparator.comparing(TriggerWrapper::getNextFireTime));
+    orderedTriggers.addAll(triggers);
+
+    while (true) {
+      TriggerWrapper tw = IterableUtil.getFirst(orderedTriggers, null);
+      if (tw == null) {
+        break;
+      }
+
+      orderedTriggers.remove(tw);
+
       // proced after the other jobstore already not blocked
       triggersByKey.lock(tw.key, 5, TimeUnit.SECONDS);
       try {
+        // trigger can be changed in other instance, so refresh it
+        tw = triggersByKey.get(tw.key);
 
         // when the trigger was in acquired state for to much time
         if (tw.getState() == ACQUIRED && (tw.getAcquiredAt() == null
@@ -884,16 +896,20 @@ public class HazelcastJobStore implements JobStore, Serializable {
         if (applyMisfire(tw)) {
           LOG.debug("Misfire applied {}", tw);
           if (tw.trigger.getNextFireTime() != null) {
-            tw = newTriggerWrapper(tw, NORMAL);
-          } else {
-            continue;
+            storeTriggerWrapper(tw = newTriggerWrapper(tw, NORMAL));
+            if (tw.getTrigger().getNextFireTime().getTime() <= limit) {
+                orderedTriggers.add(tw);
+            }
           }
+
+          continue;
         }
 
         if (tw.getTrigger().getNextFireTime().getTime() > limit) {
           storeTriggerWrapper(newTriggerWrapper(tw, NORMAL));
           continue;
         }
+
 
         final JobKey jobKey = tw.trigger.getJobKey();
         final JobDetail job = jobsByKey.get(tw.trigger.getJobKey());
@@ -1165,7 +1181,7 @@ public class HazelcastJobStore implements JobStore, Serializable {
   private boolean applyMisfire(TriggerWrapper tw)
       throws JobPersistenceException {
 
-    long misfireTime = DateBuilder.newDate().build().getTime();
+    long misfireTime = System.currentTimeMillis();
     if (misfireThreshold > 0) {
       misfireTime -= misfireThreshold;
     }

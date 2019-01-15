@@ -108,6 +108,7 @@ public class HazelcastJobStoreTest extends AbstractTest {
 
     HazelcastJobStore jobStore = createJobStore("test-shutting-down-hazelcast");
     HazelcastJobStore.setHazelcastClient(hazelcastInstance);
+    jobStore.setShutdownHazelcastOnShutdown(true);
     jobStore.schedulerStarted();
     jobStore.shutdown();
 
@@ -122,7 +123,6 @@ public class HazelcastJobStoreTest extends AbstractTest {
 
     HazelcastJobStore jobStore = createJobStore("test-shutting-down-hazelcast");
     HazelcastJobStore.setHazelcastClient(hazelcastInstance);
-    jobStore.setShutdownHazelcastOnShutdown(false);
     jobStore.schedulerStarted();
     jobStore.shutdown();
 
@@ -133,25 +133,27 @@ public class HazelcastJobStoreTest extends AbstractTest {
   public void testAcquireNextTrigger()
     throws Exception {
 
-    long baseFireTime = DateBuilder.newDate().build().getTime();
-
     JobDetail job = JobBuilder.newJob(NoOpJob.class).build();
     jobStore.storeJob(job, true);
 
-    OperableTrigger t1 = buildAndComputeTrigger("trigger1", "testAcquireNextTrigger", job, baseFireTime + 2000);
-    OperableTrigger t2 = buildAndComputeTrigger("trigger2", "testAcquireNextTrigger", job, baseFireTime + 500);
-    OperableTrigger t3 = buildAndComputeTrigger("trigger3", "testAcquireNextTrigger", job, baseFireTime + 1000);
 
+    long baseFireTime = DateBuilder.newDate().build().getTime();
     assertTrue(jobStore.acquireNextTriggers(baseFireTime, 1, 0L).isEmpty());
 
+    baseFireTime = DateBuilder.newDate().build().getTime();
+    OperableTrigger t1 = buildAndComputeTrigger("trigger1", "testAcquireNextTrigger", job, baseFireTime + 2000);
     jobStore.storeTrigger(t1, false);
     assertEquals(jobStore.acquireNextTriggers(baseFireTime + 2000, 1, 0L).get(0), t1);
 
+    baseFireTime = DateBuilder.newDate().build().getTime();
+    OperableTrigger t2 = buildAndComputeTrigger("trigger2", "testAcquireNextTrigger", job, baseFireTime + 500);
     jobStore.storeTrigger(t2, false);
     assertEquals(jobStore.acquireNextTriggers(baseFireTime + 600, 1, 0L).get(0), t2);
 
     assertTrue(jobStore.acquireNextTriggers(baseFireTime + 600, 1, 0L).isEmpty());
 
+    baseFireTime = DateBuilder.newDate().build().getTime();
+    OperableTrigger t3 = buildAndComputeTrigger("trigger3", "testAcquireNextTrigger", job, baseFireTime + 1000);
     jobStore.storeTrigger(t3, false);
     assertEquals(jobStore.acquireNextTriggers(baseFireTime + 5000, 1, 0L).get(0), t3);
 
