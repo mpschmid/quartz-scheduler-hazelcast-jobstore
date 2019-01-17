@@ -2,7 +2,7 @@ Quartz-Scheduler Hazelcast Job Store [![Build Status](https://travis-ci.org/Flav
 ====================================
 An implementation of a Quartz Scheduler Job Store using Hazelcast distributed Maps and Sets.
 
-This implementation is based on [Ameausoone/quartz-hazelcast-jobstore](https://github.com/Ameausoone/quartz-hazelcast-jobstore).
+This implementation is based on `org.terracotta.quartz.DefaultClusteredJobStore`.
 
 ### About Quartz
 Quartz is a richly featured, open source job scheduling library that can be integrated within virtually any Java application - from the smallest stand-alone application to the largest e-commerce system. Quartz can be used to create simple or complex schedules for executing tens, hundreds, or even tens-of-thousands of jobs; jobs whose tasks are defined as standard Java components that may execute virtually anything you may program them to do. The Quartz Scheduler includes many enterprise-class features, such as support for JTA transactions and clustering.
@@ -20,9 +20,9 @@ Hazelcast is an in-memory open source software data grid based on Java. By havin
 ### Adding Dependency
 ```
 <dependency>
-    <groupId>com.bikeemotion</groupId>
+    <groupId>com.idvp.infrastructure</groupId>
     <artifactId>quartz-hazelcast-jobstore</artifactId>
-    <version>1.0.4</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
@@ -33,6 +33,10 @@ When using Hazelcast Job Store we rely on Hazelcast to provide a Cluster where o
 Note that you can use Hazelcast MapStores to store all the data in your in-memory Maps in a datastore like Cassandra, Elasticsearch, PostgreSQL, etc (synchronously or asynchronously). Learn more about it [here](http://docs.hazelcast.org/docs/3.4/manual/html/map-persistence.html).
 
 # Testing it
+
+#### Tests
+Tests are based on [Ameausoone/quartz-hazelcast-jobstore](https://github.com/Ameausoone/quartz-hazelcast-jobstore). 
+
 #### Pre-requisites
 
 * JDK 8 or newer
@@ -40,7 +44,7 @@ Note that you can use Hazelcast MapStores to store all the data in your in-memor
 
 #### Clone
 ```
-git clone https://github.com/FlavioF/quartz-scheduler-hazelcast-jobstore.git
+git clone https://github.com/idvp-project/quartz-scheduler-hazelcast-jobstore.git
 cd quartz-scheduler-hazelcast-jobstore
 ```
 #### Build
@@ -51,7 +55,7 @@ mvn clean install
 ### How to Use HazelcastJobStore with Quartz
 ```java
 // Setting Hazelcast Instance
-HazelcastJobStore.setHazelcastClient(hazelcastInstance);
+HazelcastJobStoreDelegate.setInstance(hazelcastInstance);
 
 // Setting Hazelcast Job Store
 Properties props = new Properties();

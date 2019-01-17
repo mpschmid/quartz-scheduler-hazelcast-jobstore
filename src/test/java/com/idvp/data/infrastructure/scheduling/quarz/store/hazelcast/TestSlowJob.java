@@ -1,4 +1,4 @@
-package com.bikeemotion.quartz.jobstore.hazelcast;
+package com.idvp.data.infrastructure.scheduling.quarz.store.hazelcast;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -13,8 +13,7 @@ import org.quartz.JobExecutionException;
 public class TestSlowJob implements Job {
 
   @Override
-  public void execute(JobExecutionContext context)
-    throws JobExecutionException {
+  public void execute(JobExecutionContext context) {
     try {
       Thread.sleep(55);
     } catch (InterruptedException ex) {
