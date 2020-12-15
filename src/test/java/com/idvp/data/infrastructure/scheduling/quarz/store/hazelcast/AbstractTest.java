@@ -22,9 +22,8 @@ public abstract class AbstractTest {
     HazelcastInstance createHazelcastInstance(String clusterName) {
 
         Config config = new Config();
-        config.getGroupConfig().setName(clusterName);
+        config.setClusterName(clusterName);
         //noinspection deprecation
-        config.getGroupConfig().setPassword("some-password");
         config.setProperty("hazelcast.logging.type", "slf4j");
         config.setProperty("hazelcast.heartbeat.interval.seconds", "1");
         config.setProperty("hazelcast.max.no.heartbeat.seconds", "3");
